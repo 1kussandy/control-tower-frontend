@@ -1598,7 +1598,7 @@
 
 import { useState, useEffect, useRef } from "react";
 
-const API = "http://localhost:3001/api";
+const API = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 const C = {
   bg:"#f4f5f7",surface:"#ffffff",border:"#e2e4e9",muted:"#9ba3af",
   text:"#111827",sub:"#6b7280",faint:"#d1d5db",
