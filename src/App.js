@@ -2998,20 +2998,119 @@ function Permissions({dept}) {
 
 // ======================= ASSOCIATES FULL =======================
 function AssociatesFull({dept}) {
-  const [search,setSearch]=useState("");
-  const [opF,setOpF]=useState("ALL");
-  const [shF,setShF]=useState("ALL");
-  const [openId,setOpenId]=useState(null);
-  const [,fu]=useState(0);
-  const filtered=mockAssocs.filter(a=>{const s=search.toLowerCase();return(!search||a.name.toLowerCase().includes(s)||a.login.toLowerCase().includes(s)||a.badge.includes(search))&&(opF==="ALL"||a.operation_mode===opF)&&(shF==="ALL"||a.shift_code===shF);});
-  return(
-    <div style={{padding:"1.5rem",height:"100%",overflowY:"auto"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}><div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:C.muted,letterSpacing:"0.25em"}}>ASSOCIATES · {filtered.length} of {mockAssocs.length}</div></div>
-      <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}><Inp value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, login, badge..." style={{flex:1,minWidth:140}}/><Sel value={opF} onChange={e=>setOpF(e.target.value)} style={{width:130}}><option value="ALL">All Modes</option><option value="INBOUND">Inbound</option><option value="OUTBOUND">Outbound</option><option value="BOTH">Both/Flex</option></Sel><Sel value={shF} onChange={e=>setShF(e.target.value)} style={{width:100}}><option value="ALL">All Shifts</option>{["FHD","BHD","FHN","BHN"].map(s=><option key={s} value={s}>{s}</option>)}</Sel></div>
-      <div style={{display:"flex",flexDirection:"column",gap:7}}>{filtered.map(a=>{const isOpen=openId===a.badge;const deptColor=a.operation_mode==="OUTBOUND"?C.orange:a.operation_mode==="BOTH"?C.teal:C.blue;const onFloor=Object.values(contextBadges).some(ctx=>ctx[a.badge]);return(<div key={a.badge} style={{background:C.surface,border:`1.5px solid ${isOpen?C.greenBorder:C.border}`,borderRadius:12,padding:"0.9rem 1rem",cursor:"pointer"}} onClick={()=>setOpenId(isOpen?null:a.badge)}><div style={{display:"flex",alignItems:"center",gap:10}}><div style={{width:38,height:38,borderRadius:"50%",background:C.greenBg,border:`1.5px solid ${C.greenBorder}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'DM Mono',monospace",fontWeight:700,color:C.green,fontSize:"0.85rem",flexShrink:0}}>{a.name.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase()}</div><div style={{flex:1,minWidth:0}}><div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.78rem",color:C.text,fontWeight:600}}>{a.name}</div><div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.58rem",color:C.muted}}>{a.login} · {a.badge}</div></div><div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}><Bdg color={C.sub} bg={C.bg} border={C.border}>{a.shift_code}</Bdg><Bdg color={deptColor} bg={C.bg} border={C.border}>{a.operation_mode}</Bdg><Bdg>{(a.permissions||[]).length} paths</Bdg>{onFloor&&<Bdg color={C.amber} bg={C.amberBg} border={C.amberBorder}>ON FLOOR</Bdg>}</div></div>{isOpen&&(<div style={{marginTop:"1rem",paddingTop:"1rem",borderTop:`1px solid ${C.bg}`}}><div><div style={{fontFamily:"'DM Mono',monospace",fontSize:"0.56rem",color:C.faint,letterSpacing:"0.15em",marginBottom:5}}>PERMISSIONS</div><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{(a.permissions||[]).length===0?<span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:C.faint}}>None — add in Permissions tab</span>:(a.permissions||[]).map(p=><div key={p.path_name} style={{background:LC_BG(p.lc_level),border:`1.5px solid ${LC_BORDER(p.lc_level)}`,borderRadius:6,padding:"3px 8px",display:"flex",alignItems:"center",gap:4}}><span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",color:C.text}}>{p.path_name}</span><span style={{fontFamily:"'DM Mono',monospace",fontSize:"0.6rem",fontWeight:700,color:LC_COLOR(p.lc_level)}}>{p.lc_level}</span></div>)}</div></div></div>)}</div>);})}{filtered.length===0&&<div style={{textAlign:"center",padding:"2rem",fontFamily:"'DM Mono',monospace",fontSize:"0.65rem",color:C.faint}}>No associates match filters.</div>}</div>
+  const [search, setSearch] = useState("");
+  const [opF, setOpF] = useState("ALL");
+  const [shF, setShF] = useState("ALL");
+  const [openId, setOpenId] = useState(null);
+  const [, fu] = useState(0);
+  const tick = () => fu(n => n + 1);
+
+  const refreshAssociates = async () => {
+    const data = await api("/associates");
+    if (Array.isArray(data) && data.length) {
+      mockAssocs = data.map(a => ({
+        ...a,
+        permissions: a.permissions || [],
+        weekHours: a.weekHours || [],
+        yesterdayRoles: a.yesterdayRoles || [],
+      }));
+      tick();
+    }
+  };
+
+  const deleteAssociate = async (badge, name) => {
+    if (!confirm(`Are you sure you want to delete ${name} (${badge})? This cannot be undone.`)) return;
+    const res = await api(`/associates/${badge}`, { method: "DELETE" });
+    if (res && res.success) {
+      await refreshAssociates();
+      if (openId === badge) setOpenId(null);
+    } else {
+      alert("Failed to delete associate.");
+    }
+  };
+
+  const filtered = mockAssocs.filter(a => {
+    const s = search.toLowerCase();
+    return (!search || a.name.toLowerCase().includes(s) || a.login.toLowerCase().includes(s) || a.badge.includes(search)) &&
+      (opF === "ALL" || a.operation_mode === opF) &&
+      (shF === "ALL" || a.shift_code === shF);
+  });
+
+  return (
+    <div style={{ padding: "1.5rem", height: "100%", overflowY: "auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.58rem", color: C.muted, letterSpacing: "0.25em" }}>
+          ASSOCIATES · {filtered.length} of {mockAssocs.length}
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <Inp value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, login, badge..." style={{ flex: 1, minWidth: 140 }} />
+        <Sel value={opF} onChange={e => setOpF(e.target.value)} style={{ width: 130 }}>
+          <option value="ALL">All Modes</option>
+          <option value="INBOUND">Inbound</option>
+          <option value="OUTBOUND">Outbound</option>
+          <option value="BOTH">Both/Flex</option>
+        </Sel>
+        <Sel value={shF} onChange={e => setShF(e.target.value)} style={{ width: 100 }}>
+          <option value="ALL">All Shifts</option>
+          {["FHD", "BHD", "FHN", "BHN"].map(s => <option key={s} value={s}>{s}</option>)}
+        </Sel>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+        {filtered.map(a => {
+          const isOpen = openId === a.badge;
+          const deptColor = a.operation_mode === "OUTBOUND" ? C.orange : a.operation_mode === "BOTH" ? C.teal : C.blue;
+          const onFloor = Object.values(contextBadges).some(ctx => ctx[a.badge]);
+          return (
+            <div key={a.badge} style={{ background: C.surface, border: `1.5px solid ${isOpen ? C.greenBorder : C.border}`, borderRadius: 12, padding: "0.9rem 1rem", cursor: "pointer" }} onClick={() => setOpenId(isOpen ? null : a.badge)}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 38, height: 38, borderRadius: "50%", background: C.greenBg, border: `1.5px solid ${C.greenBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Mono',monospace", fontWeight: 700, color: C.green, fontSize: "0.85rem", flexShrink: 0 }}>
+                  {a.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.78rem", color: C.text, fontWeight: 600 }}>{a.name}</div>
+                  <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.58rem", color: C.muted }}>{a.login} · {a.badge}</div>
+                </div>
+                <div style={{ display: "flex", gap: 5, alignItems: "center", flexShrink: 0 }}>
+                  <Bdg color={C.sub} bg={C.bg} border={C.border}>{a.shift_code}</Bdg>
+                  <Bdg color={deptColor} bg={C.bg} border={C.border}>{a.operation_mode}</Bdg>
+                  <Bdg>{(a.permissions || []).length} paths</Bdg>
+                  {onFloor && <Bdg color={C.amber} bg={C.amberBg} border={C.amberBorder}>ON FLOOR</Bdg>}
+                  {/* DELETE BUTTON */}
+                  <Btn size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); deleteAssociate(a.badge, a.name); }}>DELETE</Btn>
+                </div>
+              </div>
+              {isOpen && (
+                <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: `1px solid ${C.bg}` }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.56rem", color: C.faint, letterSpacing: "0.15em", marginBottom: 5 }}>PERMISSIONS</div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                      {(a.permissions || []).length === 0 ? (
+                        <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", color: C.faint }}>None — add in Permissions tab</span>
+                      ) : (
+                        (a.permissions || []).map(p => (
+                          <div key={p.path_name} style={{ background: LC_BG(p.lc_level), border: `1.5px solid ${LC_BORDER(p.lc_level)}`, borderRadius: 6, padding: "3px 8px", display: "flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", color: C.text }}>{getDisplayRoleName(p.path_name, a.operation_mode === "BOTH" ? (a.default_dept || "INBOUND") : a.operation_mode)}</span>
+                            <span style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.6rem", fontWeight: 700, color: LC_COLOR(p.lc_level) }}>{p.lc_level}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <div style={{ textAlign: "center", padding: "2rem", fontFamily: "'DM Mono',monospace", fontSize: "0.65rem", color: C.faint }}>
+            No associates match filters.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
 
 
 function AssignHistory(){
