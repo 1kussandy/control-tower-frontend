@@ -1850,9 +1850,10 @@ function resetShiftConfig(shiftCode) { delete shiftFloorConfig[shiftCode]; }
 
 // Mock associates (initial fallback – will be replaced by backend data)
 let mockAssocs = [
-  {badge:"101181",login:"moberete",name:"Mory Berete",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:5},{path_name:"Waterspider",lc_level:3},{path_name:"Problem Solve",lc_level:3}],
-   weekHours:[{path_name:"CRETS Processing",hours:28.5}],yesterdayRoles:[{path_name:"CRETS Processing",hours:9.5}]},
+  
+  
+
+  
   
 ];
 
