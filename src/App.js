@@ -1600,6 +1600,7 @@ import { useState, useEffect, useRef } from "react";
 
 
 
+
 const API = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
 const C = {
   bg:"#f4f5f7",surface:"#ffffff",border:"#e2e4e9",muted:"#9ba3af",
@@ -1848,68 +1849,7 @@ function getShiftConfig(shiftCode) {
 function resetShiftConfig(shiftCode) { delete shiftFloorConfig[shiftCode]; }
 
 // Mock associates (initial fallback – will be replaced by backend data)
-let mockAssocs = [
-  {badge:"101181",login:"moberete",name:"Mory Berete",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:5},{path_name:"Waterspider",lc_level:3},{path_name:"Problem Solve",lc_level:3}],
-   weekHours:[{path_name:"CRETS Processing",hours:28.5}],yesterdayRoles:[{path_name:"CRETS Processing",hours:9.5}]},
-  {badge:"172099",login:"mroblero",name:"Manuel Roblero",shift_code:"BHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"WHD Processing",lc_level:5},{path_name:"Tech Grading",lc_level:4},{path_name:"CRETS Processing",lc_level:3},{path_name:"Waterspider",lc_level:3}],
-   weekHours:[{path_name:"WHD Processing",hours:24}],yesterdayRoles:[{path_name:"WHD Processing",hours:8}]},
-  {badge:"700000",login:"alexin",name:"Alex Inbound",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"Problem Solve",lc_level:5},{path_name:"CRETS Processing",lc_level:4},{path_name:"Downstacker",lc_level:3},{path_name:"Unloader",lc_level:3}],
-   weekHours:[{path_name:"CRETS Processing",hours:10}],yesterdayRoles:[{path_name:"CRETS Processing",hours:10}]},
-  {badge:"105011",login:"pblakeld",name:"Patricia Blake",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:4},{path_name:"Refurb Processing",lc_level:5},{path_name:"Problem Solve",lc_level:3}],
-   weekHours:[{path_name:"CRETS Processing",hours:15},{path_name:"Refurb Processing",hours:13.5}],yesterdayRoles:[{path_name:"CRETS Processing",hours:5}]},
-  {badge:"239804",login:"jcclaire",name:"Justin Claire",shift_code:"FHN",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:5},{path_name:"Downstacker",lc_level:3}],
-   weekHours:[{path_name:"CRETS Processing",hours:27}],yesterdayRoles:[{path_name:"CRETS Processing",hours:9}]},
-  {badge:"347020",login:"diha",name:"Donna Iha",shift_code:"BHN",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"Upstacker",lc_level:4},{path_name:"Unloader",lc_level:3},{path_name:"CRETS Processing",lc_level:2}],
-   weekHours:[{path_name:"Upstacker",hours:20}],yesterdayRoles:[{path_name:"Upstacker",hours:5}]},
-  {badge:"115361",login:"nickomil",name:"Nick Miller",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:4},{path_name:"Downstacker",lc_level:3},{path_name:"Cage Builder",lc_level:2}],
-   weekHours:[{path_name:"CRETS Processing",hours:30}],yesterdayRoles:[{path_name:"CRETS Processing",hours:10}]},
-  {badge:"11762283",login:"warrema",name:"Matthew Warren",shift_code:"BHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"Refurb Processing",lc_level:5},{path_name:"WHD Processing",lc_level:4},{path_name:"Unloader",lc_level:3}],
-   weekHours:[{path_name:"Refurb Processing",hours:22.5}],yesterdayRoles:[{path_name:"Refurb Processing",hours:7.5}]},
-  {badge:"12880163",login:"willefc",name:"Clifford Willeford",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:5},{path_name:"Waterspider",lc_level:3}],
-   weekHours:[{path_name:"CRETS Processing",hours:29}],yesterdayRoles:[{path_name:"CRETS Processing",hours:9.5}]},
-  {badge:"11353448",login:"jenwheel",name:"Jeni Wheeler",shift_code:"BHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"Tech Grading",lc_level:5},{path_name:"Refurb Processing",lc_level:4},{path_name:"CRETS Processing",lc_level:3}],
-   weekHours:[{path_name:"Tech Grading",hours:27}],yesterdayRoles:[{path_name:"Tech Grading",hours:9}]},
-  {badge:"11873356",login:"dhunroha",name:"Rohan Dhungana",shift_code:"FHN",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:4},{path_name:"Downstacker",lc_level:3},{path_name:"Waterspider",lc_level:3}],
-   weekHours:[{path_name:"Downstacker",hours:15},{path_name:"Waterspider",hours:10}],yesterdayRoles:[{path_name:"Waterspider",hours:5}]},
-  {badge:"500001",login:"alexonly",name:"Alex Unloader",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"Unloader",lc_level:3}],weekHours:[],yesterdayRoles:[]},
-  {badge:"500002",login:"noperms",name:"Sam NoPerms",shift_code:"BHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[],weekHours:[],yesterdayRoles:[]},
-  {badge:"500003",login:"lowlc",name:"Casey LowLC",shift_code:"FHD",operation_mode:"INBOUND",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:1},{path_name:"WHD Processing",lc_level:1},{path_name:"Downstacker",lc_level:1}],
-   weekHours:[],yesterdayRoles:[]},
-  {badge:"600001",login:"outpick1",name:"Dana Picker",shift_code:"FHD",operation_mode:"OUTBOUND",default_dept:"OUTBOUND",
-   permissions:[{path_name:"Pick Driver",lc_level:5},{path_name:"Stow Driver",lc_level:4}],
-   weekHours:[{path_name:"Pick Driver",hours:25}],yesterdayRoles:[{path_name:"Pick Driver",hours:9}]},
-  {badge:"600002",login:"outstow1",name:"Jordan Stower",shift_code:"BHD",operation_mode:"OUTBOUND",default_dept:"OUTBOUND",
-   permissions:[{path_name:"Stow Driver",lc_level:5},{path_name:"Rebin Processing",lc_level:4}],
-   weekHours:[{path_name:"Stow Driver",hours:22}],yesterdayRoles:[{path_name:"Stow Driver",hours:8}]},
-  {badge:"600003",login:"outpack1",name:"Riley Packer",shift_code:"FHN",operation_mode:"OUTBOUND",default_dept:"OUTBOUND",
-   permissions:[{path_name:"Pack Processing",lc_level:5},{path_name:"Rebin Processing",lc_level:3}],
-   weekHours:[{path_name:"Pack Processing",hours:20}],yesterdayRoles:[{path_name:"Pack Processing",hours:8}]},
-  {badge:"600004",login:"outrebin1",name:"Morgan Rebin",shift_code:"BHN",operation_mode:"OUTBOUND",default_dept:"OUTBOUND",
-   permissions:[{path_name:"Rebin Processing",lc_level:5},{path_name:"Pack Processing",lc_level:4}],
-   weekHours:[{path_name:"Rebin Processing",hours:18}],yesterdayRoles:[{path_name:"Rebin Processing",hours:7}]},
-  {badge:"600005",login:"outreplen",name:"Taylor Replen",shift_code:"FHD",operation_mode:"OUTBOUND",default_dept:"OUTBOUND",
-   permissions:[{path_name:"Waterspider",lc_level:4}],weekHours:[],yesterdayRoles:[]},
-  {badge:"700001",login:"flexstar1",name:"Alex Flex",shift_code:"FHD",operation_mode:"BOTH",default_dept:"INBOUND",
-   permissions:[{path_name:"CRETS Processing",lc_level:4},{path_name:"Pick Driver",lc_level:4},{path_name:"Waterspider",lc_level:3}],
-   weekHours:[{path_name:"CRETS Processing",hours:12},{path_name:"Pick Driver",hours:12}],yesterdayRoles:[{path_name:"Pick Driver",hours:8}]},
-  {badge:"700002",login:"flexstar2",name:"Blake Flex",shift_code:"BHD",operation_mode:"BOTH",default_dept:"OUTBOUND",
-   permissions:[{path_name:"WHD Processing",lc_level:5},{path_name:"Stow Driver",lc_level:4},{path_name:"Downstacker",lc_level:3}],
-   weekHours:[{path_name:"WHD Processing",hours:16},{path_name:"Stow Driver",hours:8}],yesterdayRoles:[{path_name:"WHD Processing",hours:8}]},
-];
+let mockAssocs = [ ];
 
 weekHistory["11873356"] = [
   {date:"2026-04-07",pathName:"Downstacker",roleType:"INDIRECT",half:"half1",dept:"INBOUND",shiftType:"DAY"},
@@ -3004,9 +2944,15 @@ function AssociatesFull({dept}) {
   const [opF, setOpF] = useState("ALL");
   const [shF, setShF] = useState("ALL");
   const [openId, setOpenId] = useState(null);
+  const [addModal, setAddModal] = useState(false);
+  const [newAssoc, setNewAssoc] = useState({
+    badge: "", login: "", name: "", shift_code: "FHD", operation_mode: dept, default_dept: dept, manager: ""
+  });
+  const [addErr, setAddErr] = useState("");
   const [, fu] = useState(0);
   const tick = () => fu(n => n + 1);
 
+  // Refresh the global mockAssocs from backend
   const refreshAssociates = async () => {
     const data = await api("/associates");
     if (Array.isArray(data) && data.length) {
@@ -3020,14 +2966,43 @@ function AssociatesFull({dept}) {
     }
   };
 
+  // Delete associate
   const deleteAssociate = async (badge, name) => {
-    if (!window.confirm(`Are you sure you want to delete ${name} (${badge})? This cannot be undone.`)) return;
+    if (!confirm(`Are you sure you want to delete ${name} (${badge})? This cannot be undone.`)) return;
     const res = await api(`/associates/${badge}`, { method: "DELETE" });
     if (res && res.success) {
       await refreshAssociates();
       if (openId === badge) setOpenId(null);
     } else {
       alert("Failed to delete associate.");
+    }
+  };
+
+  // Add new associate
+  const addAssociate = async () => {
+    setAddErr("");
+    if (!newAssoc.badge.trim()) { setAddErr("Badge ID required"); return; }
+    if (!newAssoc.login.trim()) { setAddErr("Login required"); return; }
+    if (!newAssoc.name.trim()) { setAddErr("Name required"); return; }
+    const res = await api("/associates", {
+      method: "POST",
+      body: JSON.stringify({
+        badge: newAssoc.badge.trim(),
+        login: newAssoc.login.trim(),
+        name: newAssoc.name.trim(),
+        shift_code: newAssoc.shift_code,
+        operation_mode: newAssoc.operation_mode,
+        default_dept: newAssoc.default_dept,
+        manager: newAssoc.manager.trim(),
+        home_dept: "CRETS Processing"
+      })
+    });
+    if (res && !res.error) {
+      setAddModal(false);
+      setNewAssoc({ badge: "", login: "", name: "", shift_code: "FHD", operation_mode: dept, default_dept: dept, manager: "" });
+      await refreshAssociates();
+    } else {
+      setAddErr(res?.error || "Failed to add associate");
     }
   };
 
@@ -3040,11 +3015,13 @@ function AssociatesFull({dept}) {
 
   return (
     <div style={{ padding: "1.5rem", height: "100%", overflowY: "auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: 8 }}>
         <div style={{ fontFamily: "'DM Mono',monospace", fontSize: "0.58rem", color: C.muted, letterSpacing: "0.25em" }}>
           ASSOCIATES · {filtered.length} of {mockAssocs.length}
         </div>
+        <Btn variant="primary" size="sm" onClick={() => setAddModal(true)}>+ ADD ASSOCIATE</Btn>
       </div>
+
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <Inp value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, login, badge..." style={{ flex: 1, minWidth: 140 }} />
         <Sel value={opF} onChange={e => setOpF(e.target.value)} style={{ width: 130 }}>
@@ -3058,6 +3035,7 @@ function AssociatesFull({dept}) {
           {["FHD", "BHD", "FHN", "BHN"].map(s => <option key={s} value={s}>{s}</option>)}
         </Sel>
       </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
         {filtered.map(a => {
           const isOpen = openId === a.badge;
@@ -3078,7 +3056,6 @@ function AssociatesFull({dept}) {
                   <Bdg color={deptColor} bg={C.bg} border={C.border}>{a.operation_mode}</Bdg>
                   <Bdg>{(a.permissions || []).length} paths</Bdg>
                   {onFloor && <Bdg color={C.amber} bg={C.amberBg} border={C.amberBorder}>ON FLOOR</Bdg>}
-                  {/* DELETE BUTTON */}
                   <Btn size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); deleteAssociate(a.badge, a.name); }}>DELETE</Btn>
                 </div>
               </div>
@@ -3110,10 +3087,29 @@ function AssociatesFull({dept}) {
           </div>
         )}
       </div>
+
+      {/* Add Associate Modal */}
+      <Modal open={addModal} onClose={() => { setAddModal(false); setAddErr(""); setNewAssoc({ badge: "", login: "", name: "", shift_code: "FHD", operation_mode: dept, default_dept: dept, manager: "" }); }} title="Add Associate" width={440}>
+        {addErr && <div style={{ background: C.redBg, border: `1px solid ${C.redBorder}`, borderRadius: 8, padding: "0.6rem", marginBottom: "1rem", fontFamily: "'DM Mono',monospace", fontSize: "0.65rem", color: C.red }}>{addErr}</div>}
+        <Field label="BADGE ID" req><Inp value={newAssoc.badge} onChange={e => setNewAssoc({ ...newAssoc, badge: e.target.value })} placeholder="e.g. 500099" /></Field>
+        <Field label="LOGIN" req><Inp value={newAssoc.login} onChange={e => setNewAssoc({ ...newAssoc, login: e.target.value })} placeholder="e.g. jsmith" /></Field>
+        <Field label="FULL NAME" req><Inp value={newAssoc.name} onChange={e => setNewAssoc({ ...newAssoc, name: e.target.value })} placeholder="John Smith" /></Field>
+        <Field label="SHIFT"><Sel value={newAssoc.shift_code} onChange={e => setNewAssoc({ ...newAssoc, shift_code: e.target.value })}><option value="FHD">FHD</option><option value="BHD">BHD</option><option value="FHN">FHN</option><option value="BHN">BHN</option></Sel></Field>
+        <Field label="DEPT MODE"><Sel value={newAssoc.operation_mode} onChange={e => setNewAssoc({ ...newAssoc, operation_mode: e.target.value, default_dept: e.target.value === "BOTH" ? newAssoc.default_dept : e.target.value })}>
+          <option value="INBOUND">INBOUND</option><option value="OUTBOUND">OUTBOUND</option><option value="BOTH">BOTH/FLEX</option>
+        </Sel></Field>
+        {newAssoc.operation_mode === "BOTH" && (
+          <Field label="DEFAULT DEPT"><Sel value={newAssoc.default_dept} onChange={e => setNewAssoc({ ...newAssoc, default_dept: e.target.value })}><option value="INBOUND">INBOUND</option><option value="OUTBOUND">OUTBOUND</option></Sel></Field>
+        )}
+        <Field label="MANAGER (optional)"><Inp value={newAssoc.manager} onChange={e => setNewAssoc({ ...newAssoc, manager: e.target.value })} placeholder="Last, First" /></Field>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: "1rem" }}>
+          <Btn onClick={() => { setAddModal(false); setAddErr(""); }}>Cancel</Btn>
+          <Btn variant="primary" onClick={addAssociate}>Add Associate</Btn>
+        </div>
+      </Modal>
     </div>
   );
 }
-
 
 function AssignHistory(){
   const [search,setSearch]=useState("");
